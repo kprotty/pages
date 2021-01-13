@@ -11,6 +11,10 @@ Feel free to send a PR/issue for corrections/discussions, although there's no gu
 * page.url: {{ page.url }}
 * page.path: {{ path.path }}
 
+* site.url: {{ site.url }}
+* site.baseurl: {{ site.baseurl }}
+* site.github.url: {{ site.github.url }}
+
 Posts:
 <ul>
     {% for post in site.posts %}
