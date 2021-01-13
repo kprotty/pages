@@ -1,5 +1,7 @@
 # Building a Zig event loop: Async/Await
-Hey, and welcome to a (hopefully) multi-part blog series where I build an event loop for Zig. An event loop in this case refers to a runtime or system which executes non-blocking tasks while often providing tools to communicate between those tasks and the outside world. You may be faimilar with some other "event loops" out there such as Node.js [libuv], Rust [tokio], or Go's [runtime](https://golang.org/doc/faq#runtime).
+Welcome to a (hopefully) multi-part blog series where I build an event loop for Zig. My goal is to document and demistify the process of building one + possibly get the final product into the zig standard library. 
+
+If you're not awaire, an event loop in this case refers to a runtime which executes non-blocking tasks while often providing tools to communicate between those tasks and the outside world. You may be faimilar with some other "event loops" out there such as Node.js [libuv], Rust [tokio], or Go's [runtime](https://golang.org/doc/faq#runtime).
 
 [libuv]: https://github.com/libuv/libuv
 [tokio]: https://github.com/tokio-rs/tokio
