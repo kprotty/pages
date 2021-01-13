@@ -52,13 +52,13 @@ Another analogy I like to use is juggling. Concurrency is juggling more than one
 
 <sub>TODO: zig-fast juggling doodle</sub>
 
-Because of how vague "pausable functions" are, people have come up with different ways of implementing coroutines. Of all the different coroutine properties, there are three that I'd like to focus on: Capturing, completing, and multi-tasking.
+Because of how vague coroutines/"pausable functions" are, people have come up with different ways of implementing coroutines. Of all the different coroutine properties, there are three that I'd like to focus on: multi-tasking, capturing, and completing.
 
 ### Multi-tasking
 
 Coroutine multi-tasking is all about how coroutines and paused/unpaused. The two primiary ways I know of for going about this is *preemptive* multi-tasking and *cooperative* multi-tasking. When coroutines are preemptively scheduled, it generally means having an outside system control how they're executed. This is common in desktop operating systems where there's a [Kernel] which lets [Processes] (i.e. coroutines) run for a while but can (and will) force them to stop running so another process can run. Cooperative multi-tasking on the other hand means that the processes themselves dictate when another process can run instead of having a "kernel" forcefully decide for them. 
 
-The latter is efficient as it avoids the overhead of running what is effectively a [VirtualMachine]. The former is good for when you can't trust all processes in the system to *cooperative* with each other and distribute run time fairly, so you have to force it. The abilty to boot a process from running in preemptive multi-tasking allows bounded latency for all processes while letting it run until its ready to switch in cooperative multi-tasking allows for maximum throughput.
+The latter is efficient as it avoids the overhead of running what is effectively a [VirtualMachine]. The former is good for when you can't trust all processes in the system to *cooperate* with each other and distribute run time fairly, so you have to force it. The abilty to boot a process from running in preemptive multi-tasking allows bounded latency for all processes while letting it run until its ready to switch in cooperative multi-tasking allows for maximum throughput.
 
 [Kernel]: https://www.geeksforgeeks.org/kernel-in-operating-system/
 [Processes]: https://www.tutorialspoint.com/operating_system/os_processes.htm
@@ -66,7 +66,7 @@ The latter is efficient as it avoids the overhead of running what is effectively
 
 ### Capturing
 
-Coroutine capturing refers to what strategy is used to store the state a coroutine needs to unpause when being paused. Think about pausing a function in the middle of doing something. Whatever it was in the middle of, it needs to pick it back up when its continued. How that "continue data" is stored is a decent distinction between multiple coroutine implementations
+Coroutine capturing refers to what strategy is used to store the state a coroutine needs to continue when being un-paused. Think about pausing a function in the middle of doing something. Whatever it was in the middle of, it needs to pick it back up when its continued. How that "continue data" is stored is a decent distinction between multiple coroutine implementations:
 
 - Callbacks,
 - Stackful,
@@ -78,3 +78,4 @@ Finnaly, coroutine resuming here refers to how a coroutine itself is driven to c
 
 - Readiness: Futures, Generators
 - Completion: Callbacks, @Frames
+- pro/con: extra polls, 0-copy result, poll-chains, cancellation.
