@@ -7,26 +7,7 @@ Feel free to send a PR/issue for corrections/discussions, although there's no gu
 ## Posts
 **TODO:** None *final* yet. Working on some ideas though...
 
-* post_url: {% post_url 2021-01-15-async-await %}
-* page.url: {{ page.url }}
-* page.path: {{ path.path }}
-
-* site.url: {{ site.url }}
-* site.baseurl: {{ site.baseurl }}
-* site.github.url: {{ site.github.url }}
-
-Posts:
-<ul>
-    {% for post in site.posts %}
-        <li>
-            url: {{ post.url }}
-            <br />
-            title: {{ post.title }}
-        </li>
-    {% endfor %}
-</ul>
-
-* [Building a Zig event loop: (pt. 1) Async/Await]({{ page.url }})
+* [Building a Zig event loop: (pt. 1) Async/Await]({{ site.baseurl }}{% post_url 2021-01-15-async-await %})
 * Building a Zig event loop: (pt. 2) Scheduler designs
 * Building a Zig event loop: (pt. 3) Concurrency primitives
 * Building a Zig event loop: (pt. 4) Atomics
