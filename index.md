@@ -7,7 +7,9 @@ Feel free to send a PR/issue for corrections/discussions, although there's no gu
 ## Posts
 **TODO:** None *final* yet. Working on some ideas though...
 
-* [Building a Zig event loop: (pt. 1) Async/Await]({% post_url 2021-01-15-async-await %})
+<p> Link: {% post_url 2021-01-15-async-await %} </p>
+
+* Building a Zig event loop: (pt. 1) Async/Await
 * Building a Zig event loop: (pt. 2) Scheduler designs
 * Building a Zig event loop: (pt. 3) Concurrency primitives
 * Building a Zig event loop: (pt. 4) Atomics
