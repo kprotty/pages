@@ -8,7 +8,7 @@ If you're not awaire, an event loop in this case refers to a runtime which execu
 
 When it comes to Zig, async/await is one part of the language seems to be the most misunderstood. Currently, I blame this on a few things: Lack of documentation in the language reference and lack-of/incorrectly-implied relations to existing concepts in the wild. Given we'll be writing effectively a non-blocking task scheduler, Zig's async/await serves a good way to simplify all the "non-blocking" and "concurrent"-ness of it to make it easier to read/write.
 
-As a side-note, the series assumes you know how to read and write Zig code. Another assumption is that you're familiar with at least some form of Concurrency. If any of these are not true, I suggest at least playing with them to some extent in order to get familiar with these topics before hand, possibly in other langs/ecosystems; I might draw parallels to other implementations with the hopes of making it easier to understand. This is also my first actual blog post, so take of that what you will. 
+As a side-note, the series assumes you know how to read and write Zig code. Another assumption is that you're familiar with at least some form of Concurrency. If any of these are not true, I suggest at least playing with them to some extent in order to get familiar with these topics before hand, possibly in other langs/ecosystems; I might draw parallels to other implementations with the hopes of making it easier to understand. This is also my first actual blog post, so make of that what you will. 
 
 ## (Brainstorm) Outline:
 
