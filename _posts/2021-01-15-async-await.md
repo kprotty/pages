@@ -1,14 +1,14 @@
-# Building a Zig event loop: Understanding Async/Await
-Hey, and welcome to a (hopefully) multi-part blog series where I build an event loop for Zig. An event loop in this case refers to a runtime or system which executes non-blocking tasks while often providing tools to communicate between those tasks and the outside world. You may be faimilar with some other "event loops" out there such as Node.js [`libuv`], Rust [`tokio`], or Go's [runtime](https://golang.org/doc/faq#runtime).
+# Building a Zig event loop: Async/Await
+Hey, and welcome to a (hopefully) multi-part blog series where I build an event loop for Zig. An event loop in this case refers to a runtime or system which executes non-blocking tasks while often providing tools to communicate between those tasks and the outside world. You may be faimilar with some other "event loops" out there such as Node.js [libuv], Rust [tokio], or Go's [runtime](https://golang.org/doc/faq#runtime).
 
-[`libuv`]: https://github.com/libuv/libuv
-[`tokio`]: https://github.com/tokio-rs/tokio
+[libuv]: https://github.com/libuv/libuv
+[tokio]: https://github.com/tokio-rs/tokio
 
 When it comes to Zig, async/await is one part of the language seems to be the most misunderstood. Currently, I blame this on a few things: Lack of documentation in the language reference and lack-of/incorrectly-implied relations to existing concepts in the wild. Given we'll be writing effectively a non-blocking task scheduler, Zig's async/await serves a good way to simplify all the "non-blocking" and "concurrent"-ness of it to make it easier to read/write.
 
 As a side-note, the series assumes you know how to read and write Zig code. Another assumption is that you're familiar with at least some form of Concurrency. If any of these are not true, I suggest at least playing with them to some extent in order to get familiar with these topics before hand, possibly in other langs/ecosystems; I might draw parallels to other implementations with the hopes of making it easier to understand. This is also my first actual blog post, so take of that what you will. 
 
-### Outline:
+## (Brainstorm) Outline:
 
 Concurrency:
 - concurrency vs parallelism
@@ -50,17 +50,17 @@ Another analogy I like to use is juggling. Concurrency is juggling more than one
 
 <sub>TODO: zig-fast juggling doodle</sub>
 
-Because of how vague "pausable functions" are, people have come up with different ways of implementing coroutines. Of all the different coroutine properties, there are three that I'd like to focus on: Capturing, resuming, and multi-tasking.
+Because of how vague "pausable functions" are, people have come up with different ways of implementing coroutines. Of all the different coroutine properties, there are three that I'd like to focus on: Capturing, completing, and multi-tasking.
 
 ### Multi-tasking
 
-Coroutine multi-tasking is all about how coroutines and paused/unpaused. The two primiary ways I know of for going about this is *preemptive* multi-tasking and *cooperative* multi-tasking. When coroutines are preemptively scheduled, it generally means having an outside system control how they're executed. This is common in desktop operating systems where there's a [`Kernel`] which lets [`Processes`] (i.e. coroutines) run for a while but can (and will) force them to stop running so another process can run. Cooperative multi-tasking on the other hand means that the processes themselves dictate when another process can run instead of having a "kernel" forcefully decide for them. 
+Coroutine multi-tasking is all about how coroutines and paused/unpaused. The two primiary ways I know of for going about this is *preemptive* multi-tasking and *cooperative* multi-tasking. When coroutines are preemptively scheduled, it generally means having an outside system control how they're executed. This is common in desktop operating systems where there's a [Kernel] which lets [Processes] (i.e. coroutines) run for a while but can (and will) force them to stop running so another process can run. Cooperative multi-tasking on the other hand means that the processes themselves dictate when another process can run instead of having a "kernel" forcefully decide for them. 
 
-The latter is efficient as it avoids the overhead of running what is effectively a [`VirtualMachine`]. The former is good for when you can't trust all processes in the system to *cooperative* with each other and distribute run time fairly, so you have to force it. The abilty to boot a process from running in preemptive multi-tasking allows bounded latency for all processes while letting it run until its ready to switch in cooperative multi-tasking allows for maximum throughput.
+The latter is efficient as it avoids the overhead of running what is effectively a [VirtualMachine]. The former is good for when you can't trust all processes in the system to *cooperative* with each other and distribute run time fairly, so you have to force it. The abilty to boot a process from running in preemptive multi-tasking allows bounded latency for all processes while letting it run until its ready to switch in cooperative multi-tasking allows for maximum throughput.
 
-[`Kernel`]:
-[`Processes`]:
-[`VirtualMachine`]:
+[Kernel]: https://www.geeksforgeeks.org/kernel-in-operating-system/
+[Processes]: https://www.tutorialspoint.com/operating_system/os_processes.htm
+[VirtualMachine]: https://en.wikipedia.org/wiki/Virtual_machine
 
 ### Capturing
 
@@ -70,7 +70,7 @@ Coroutine capturing refers to what strategy is used to store the state a corouti
 - Stackful,
 - Stackless,
 
-### Resuming
+### Completing
 
 Finnaly, coroutine resuming here refers to how a coroutine itself is driven to completion.
 
