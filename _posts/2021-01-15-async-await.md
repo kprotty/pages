@@ -1,4 +1,4 @@
-Welcome to a (hopefully) multi-part blog series where I build an event loop for Zig. My goal is to document and demistify the process + possibly get the final product into the zig standard library. There's a lot to say so *this will be a long ride.*
+Welcome to a (hopefully) multi-part blog series where I build an event loop for Zig. There's a lot to say so *this will be a long one.*
 
 # Building a Zig event loop: Async/Await
 As an introduction, the series assumes you know how to read and write Zig code. Another assumption is that you're familiar with at least some lower level C concepts. If any of these are not true, I suggest at least playing with them to some extent in order to get familiar with these topics before hand, possibly in other langs/ecosystems; I might draw parallels to other implementations with the hopes of making it easier to understand. The hope is to provide some info for those already experienced so it may not be beginner friendly. This is also my first blog post, so make of that what you will. 
