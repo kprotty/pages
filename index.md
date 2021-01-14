@@ -8,15 +8,13 @@ Feel free to send a PR/issue for corrections/discussions, although there's no gu
 **TODO:** None *final* yet. Working on some ideas though...
 
 * [Building a Zig event loop: (pt. 1) Async/Await]({{ site.baseurl }}{% post_url 2021-01-15-async-await %})
-* Building a Zig event loop: (pt. 2) Scheduler designs
-* Building a Zig event loop: (pt. 3) Concurrency primitives
-* Building a Zig event loop: (pt. 4) Atomics
-* Building a Zig event loop: (pt. 5) Synchronization primitives
-* Building a Zig event loop: (pt. 6) ParkingLot
-* Building a Zig event loop: (pt. 7) Threadpools
-* Building a Zig event loop: (pt. 8) Work-stealing
-* Building a Zig event loop: (pt. 9) Event sources
-* Building a Zig event loop: (pt. 10) Optimizations
+* Building a Zig event loop: (pt. 2) Schedulers
+* Building a Zig event loop: (pt. 3) Atomics
+* Building a Zig event loop: (pt. 4) Synchronization
+* Building a Zig event loop: (pt. 5) ParkingLot
+* Building a Zig event loop: (pt. 6) Threadpools
+* Building a Zig event loop: (pt. 7) Event sources
+* Building a Zig event loop: (pt. 8) Blocking
 
 ## Projects
 Here lies unfinished/experimental projects that I did things with:
