@@ -67,56 +67,29 @@ The latter is efficient as it avoids the overhead of running what is effectively
 
 ### Capturing
 
-<p>
 Think about pausing a function in the middle of performing a task. Whatever it was in the middle of, it needs to pick it back up when its continued. How that "continue data" is stored is a what I like to call coroutine capturing. It turns out that there's enough distinctions on how coroutines store their data to give them classifications:
-</p>
 
-<ul>
+#### Stackful
 
-<li>
-<h4><b>Stackful</b>:</h4>
+These are the most common types of coroutines to implement when no garbage collector is available. If you're familiar with [stack frames & call stacks](https://en.wikipedia.org/wiki/Call_stack) then its the same idea. There's a stack of frames for each function. The frame stores the functions locals and intermediary data. When calling a new function, a new frame is pushed onto the stack for it to use. Switching between coroutines then becomes pushing any needed stack for unpausing onto to stack and then switching to the next coroutine's stack to continue execution. You may also know this as "Fibers", "Green Threads", "Erlang Processes" or "Goroutines".
 
-<p>
-These are the most common types of coroutines to implement when no garbage collector is available. If you're familiar with <a href="https://en.wikipedia.org/wiki/Call_stack">stack frames & call stacks</a> then its the same idea. There's a stack of frames for each function. The frame stores the functions locals and intermediary data. When calling a new function, a new frame is pushed onto the stack for it to use. Switching between coroutines then becomes pushing any needed stack for unpausing onto to stack and then switching to the next coroutine's stack to continue execution. You may also know this as "Fibers", "Green Threads", "Erlang Processes" or "Goroutines".
-</p>
-
-<p>
 The benefit of this approach is that its fairly trivial to implement given operating system threads do just that. This also handles recursion naturally (just push a new frame) until it doesn't when you run out of stack memory. Some implementations can detect this limit being reached and allocate a new stack for you under the hood. 
-</p>
 
-<p>
-Because of its simple nature, it can be alluring to implement this when one reaches for coroutines. However, there are a few downsides you must be aware of (as with any method) before doing so. One is that if you don't know how much stack memory is needed, you're generally left to <i>guess</i>. This either means allocating more memory than necessary (e.g. 2kb per coro.) or not allocating enough and having to grow or panic. The other inheritly annoying property is capturing the context often uses more memory that necessary. This is due to nested frames storing not just the continuation data, but also intermediary results (x86 register spilling), previous stack frame links (x86 `push rbp`), and returning function pointers (x86 `ret`).
-</p>
+Because of its simple nature, it can be alluring to implement this when one reaches for coroutines. However, there are a few downsides you must be aware of (as with any method) before doing so. One is that if you don't know how much stack memory is needed, you're generally left to *guess*. This either means allocating more memory than necessary (e.g. 2kb per corouting) or not allocating enough and having to grow or panic. The other inheritly annoying property is capturing the context often uses more memory that necessary. This is due to nested frames storing not just the continuation data, but also intermediary results (x86 register spilling), previous stack frame links (x86 `push rbp`), and returning function pointers (x86 `ret`).
 
-</li>
+#### Stackless
 
-<li>
-<h4><b>Stackless</b>:</h4>
+There is another approach for storing state; One which is closer to how you would optimally represent a pausable routine. If you're in a language without garbage collection and you want to represent a computation that can be started, stopped and continued, you don't actually reach for execution stacks when you want efficiency. You instead reach for [finite state machines](https://www.embedded.com/software-design-of-state-machines/). This is the scheme that many fast parsers, data protocols, generators and asynchronous systems use in the wild. The idea is that each execution of the routine updates internal state before pausing. Then, when unpaused, it continues from its updated state. This then repeats until the routine finishes (or forever). 
 
-<p>
-There is another approach for storing state; One which is closer to how you would optimally represent a pausable routine. If you're in a language without garbage collection and you want to represent a computation that can be started, stopped and continued, you don't actually reach for execution stacks when you want efficiency. You instead reach for <a href="https://www.embedded.com/software-design-of-state-machines/">finite state machines</a>. This is the scheme that many fast parsers, data protocols, generators and asynchronous systems use in the wild. The idea is that each execution of the routine updates internal state before pausing. Then, when unpaused, it continues from its updated state. This then repeats until the routine finishes (or forever). 
-</p>
+What this looks like for coroutines is that its split up into multiple stages, each separated by a coroutine pause point. Each stage specifies what data it needs to do its work. The coroutine is then a union of all stages with a reference to the current stage. When the coroutine is paused (a stage ended), its internal state is updated to point to the next stage and the next stage's data is prepared and ready to use when the coroutine is unpaused. It may sound complicated, but think of a `switch` statement and how each `case` is its own "stage" with its own variables that it either uses locally or from outside the case statement.
 
-<p>
-What this looks like for coroutines is that its split up into multiple stages, each separated by a coroutine pause point. Each stage specifies what data it needs to do its work. The coroutine is then a union of all stages with a reference to the current stage. When the coroutine is paused (a stage ended), its internal state is updated to point to the next stage and the next stage's data is prepared and ready to use when the coroutine is unpaused. It may sound complicated, but think of a switch statement and how each case is its own "stage" with its own variables that it either uses locally or from outside the case statement.
-</p>
+This turns out to be a nice memory optimization due to the coroutine only needing to store `max(all(stages))` worth of memory and using the OS thread's normal execution stack for everything else. The idiomatic way to transfer data between stages is to write all of the next stage's data before pausing. This can be optimized to write into the next stage's memory directly instead of doing a large copy between transitions. Lastly, because all of the stages are known before hand, the entire coroutine can be allocated in one go without any wasted memory or dynamically growing memory. These optimizations make this approach more common when it comes to representing asynchronous state.
 
-<p>
-This turns out to be a nice memory optimization due to the coroutine only needing to store <i>max(all(stages))</i> worth of memory and using the OS thread's normal execution stack for everything else. The idiomatic way to transfer data between stages is to write all of the next stage's data before pausing. This can be optimized to write into the next stage's memory directly instead of doing a large copy between transitions. Lastly, because all of the stages are known before hand, the entire coroutine can be allocated in one go without any wasted memory or dynamically growing memory. These optimizations make this approach more common when it comes to representing asynchronous state.
-</p>
+There is of course a downside, but for most cases its rarely hit. It relates to answering the question: *"what happens when you want to do recursion?"*. Because all of the stages need to be known before hand, this is incompatible with runtime recursion and many implementations simply default to banning immediate recursion in their stackfless coroutines. To achieve it nonetheless, a working solution is to dynamically allocate the recursive coroutine and continue it from there. It brings in the worst case dynamic allocation from stackful coroutines, but only for when recursion is necessary.
 
-<p>
-There is of course a downside, but for most cases its rarely hit. It relates to answering the question: <i>"what happens when you want to do recursion?"</i>. Because all of the stages need to be known before hand, this is incompatible with runtime recursion and many implementations simply default to banning immediate recursion in their stackfless coroutines. To achieve it nonetheless, a working solution is to dynamically allocate the recursive coroutine and continue it from there. It brings in the worst case dynamic allocation from stackful coroutines, but only for when recursion is necessary.
-</p>
+##### Callbacks
 
-</li>
-
-<li>
-<h4><b>Callbacks</b>:</h4>
-
-</li>
-
-</ul>
+*TODO*
 
 ### Resolving
 
