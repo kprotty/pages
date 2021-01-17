@@ -116,9 +116,9 @@ This turns out to be a nice memory optimization due to the coroutine only needin
 
 There is of course a downside, but for most cases its rarely hit. It relates to answering the question: *"what happens when you want to do recursion?"*. Because all of the stages need to be known before hand, this is incompatible with runtime recursion and many implementations simply default to banning immediate recursion in their stackfless coroutines. To achieve it nonetheless, a working solution is to dynamically allocate the recursive coroutine and continue it from there. It brings in the worst case dynamic allocation from stackful coroutines, but only for when recursion is necessary.
 
-##### Callbacks
+##### Extra: Callbacks
 
-*TODO*
+Callbacks are often the type of continuation style that people think of when "non-blocking" and "asynchronous" terms are used. This refers to creating closures; functions which (often lexically) captured state. A famous example would be Javascript's [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) and its ubiquitous ["callback hell"](http://callbackhell.com/). What's interesting though is that callbacks are actually a form of stackless coroutines! They only capture the necessary info they need to be called and, on completion, follow by setting up how the next callback will be called.
 
 ### Resolving
 
