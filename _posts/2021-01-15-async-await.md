@@ -56,7 +56,7 @@ Another analogy I like to use is juggling. Concurrency is juggling more than one
 
 <sub>TODO: zig-fast juggling doodle</sub>
 
-Because of how vague coroutines/"pausable functions" are, people have come up with different ways of implementing coroutines. Of all the different coroutine properties, there are three that I'd like to focus on: multi-tasking, capturing, and resolving.
+Because of how vague coroutines/"pausable functions" are, people have come up with different ways of implementing coroutines. Of all the different coroutine properties, there are three that I'd like to focus on: multi-tasking, capturing, and composition.
 
 ### Multi-tasking
 
@@ -98,6 +98,10 @@ There is another approach for storing state; One which is closer to how you woul
 What this looks like for coroutines is that its split up into multiple stages, each separated by a coroutine pause point. Each stage specifies what data it needs to do its work. The coroutine is then a union of all stages with a reference to the current stage. When the coroutine is paused (a stage ended), its internal state is updated to point to the next stage and the next stage's data is prepared and ready to use when the coroutine is unpaused. It may sound complicated, but think of a `switch` statement and how each `case` is its own "stage" with its own variables that it either uses locally or from outside the case statement.
 
 ```c++
+x = 10;
+yield;
+print(x)
+
 switch (coroutine.current) {
 case entry:
     x = 10;
@@ -107,8 +111,9 @@ case entry:
     break;
 
 case after_yield:
-    x = coroutine.data[after_yield].x
-    // ...
+    x = coroutine.data[after_yield].x;
+    print(x);
+    break;
 } 
 ```
 
@@ -120,7 +125,9 @@ There is of course a downside, but for most cases its rarely hit. It relates to 
 
 Callbacks are often the type of continuation style that people think of when "non-blocking" and "asynchronous" terms are used. This refers to creating closures; functions which (often lexically) captured state. A famous example would be Javascript's [Promises](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) and its ubiquitous ["callback hell"](http://callbackhell.com/). What's interesting though is that callbacks are actually a form of stackless coroutines! They only capture the necessary info they need to be called and, on completion, follow by setting up how the next callback will be called.
 
-### Resolving
+### Composition
+
+The last piece for concurrency categorization here is about how these coroutines are resolved and composed together. It would be pretty limiting if you could have only one coroutine for the entire program
 
 Finally, resolving here refers to how a coroutine its final result is waited on and extracted.
 
