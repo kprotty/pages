@@ -1,10 +1,10 @@
 ---
 layout: default
-title: "Building a Zig event loop: Async/Await"
-description: "Welcome to a (hopefully) multi-part blog series where I build an event loop for Zig. There's a lot to say so this will be a long one."
+title: "Concurrency"
+description: "Something something async; something something concurrency. Yea, its thicc."
 ---
 
-As an introduction, the series assumes you know how to read and write Zig code. Another assumption is that you're familiar with at least some lower level C concepts. If any of these are not true, I suggest at least playing with them to some extent in order to get familiar with these topics before hand, possibly in other langs/ecosystems; I might draw parallels to other implementations with the hopes of making it easier to understand. The hope is to provide some info for those already experienced so it may not be beginner friendly. This is also my first blog post, so make of that what you will. 
+This post assumes that you're familiar with at least some lower level C concepts. IF this isn't true, I suggest at least playing with C/fibers to some extent in order to get familiar with these topics before hand (possibly in other langs/ecosystems). I'll draw parallels to other implementations with the hopes of making it easier to understand. The hope is to provide some info for those already experienced so it may not be beginner friendly. This is also my first blog post, so make of that what you will. 
 
 If you're not aware, an event loop in this case refers to a runtime which executes non-blocking tasks while often providing tools to communicate between those tasks and the outside world. You may be faimilar with some other "event loops" out there such as Node.js [libuv], Rust [tokio], or Go's [runtime](https://golang.org/doc/faq#runtime). In order to help in representing non-blocking tasks, Zig provides a mechanism it calls `async/await` to help by desugaring synchronous code into non-blocking, asynchronous code.
 
@@ -13,40 +13,9 @@ If you're not aware, an event loop in this case refers to a runtime which execut
 
 When it comes to Zig, and seemingly Rust as well, async/await is one part of the language seems to be the most misunderstood. Currently, on the Zig side, I blame this on a few things: Lack of documentation in the language reference and lack-of/incorrectly-implied relations to existing concepts in the wild. Given we'll be writing effectively a non-blocking task scheduler, Zig's async/await serves a good way to simplify all the non-blocking-ness to make it easier to use.
 
-
-## (Brainstorm) Outline:
-
-Async Concurrency:
-- concurrency vs parallelism
-- coroutines: Promises, Goroutines, Futures, Fibers, Green Threads
-- stackful/stackless: memory, thunking
-- readiness/completion
-
-Async API:
-- @Frame, async, await,
-- suspend block, resume, nosuspend
-- colorless functions
-- @frame()
-
-Async Internals:
-- async, pinning, and result locations
-- suspend/resume desugared state machine
-- await, nosuspend, and hidden control flow
-- notes on the future
-
-Async in Action:
-- Generator
-- Scheduler
-- Spawning
-- Timers
-
-Conclusion:
-- efficient concurrency
-- improve scheduler design (and timers)
-
 ## Async Concurrency
 
-In order to understand Zig async/await, you must first grasp the interleaving states that is the universe... Honestly, this might actually be what it feels like to someone new to the idea that your code can stop and start from different points, let alone run at the same time. I remember someone comparing this mental shift with figuring out recursion: where you have to start executing code and storing the state it produces in your head in order to reason about it effectively. Before diving that deep however, there are a few definitions that should be set in place:
+In order to understand Zig async/await, you must first grasp the interleaving states that is life. This might actually be what it feels like to someone new to the idea that your code can stop and start from different points, let alone run at the same time. I remember someone comparing this mental shift with figuring out recursion: where you have to start executing code and storing the state it produces in your head in order to reason about it effectively. Before diving that deep however, there are a few definitions that should be set in place:
 
 * **Concurrency**: The ability for separate units of execution (coroutines) to switch to/from one another. Or what I like to call: pausable functions.
 
